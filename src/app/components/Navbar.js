@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { COLORS } from '@/lib/constants';
+import { IoPersonCircleOutline } from 'react-icons/io5';
 
 export default function Navbar() {
   const [user, setUser] = useState(null);
@@ -43,16 +44,16 @@ export default function Navbar() {
       <div className="flex items-center gap-4">
         {user ? (
           <>
-            <Link href="/perfil" className="font-buttons" style={{ color: COLORS.card }}>
-              👤 Perfil
+            <Link href="/perfil" className="flex items-center gap-1 font-buttons" style={{ color: COLORS.card }}>
+              <IoPersonCircleOutline size={24} /> Perfil
             </Link>
             <button onClick={handleLogout} className="font-buttons text-sm" style={{ color: COLORS.card }}>
               Salir
             </button>
           </>
         ) : (
-          <Link href="/login" className="font-buttons" style={{ color: COLORS.card }}>
-            👤 Login
+          <Link href="/login" className="flex items-center gap-1 font-buttons" style={{ color: COLORS.card }}>
+            <IoPersonCircleOutline size={24} /> Login
           </Link>
         )}
       </div>
