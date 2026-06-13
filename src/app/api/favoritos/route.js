@@ -10,10 +10,10 @@ export async function GET(request) {
     return NextResponse.json({ error: 'user_id requerido' }, { status: 400 });
   }
 
-  const { data, error } = await supabase
-    .from('favorites')
-    .select('*, drinks(*), mixes(*)')
-    .eq('user_id', userId);
+ const { data, error } = await supabase
+  .from('favorites')
+  .select('id, user_id, drink_id, mix_id, drinks(*), mixes(*)')
+  .eq('user_id', userId);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
