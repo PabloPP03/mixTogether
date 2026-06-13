@@ -1,5 +1,6 @@
 import localFont from 'next/font/local';
 import { Poppins } from 'next/font/google';
+import Navbar from './components/Navbar';
 import './globals.css';
 
 const bartender = localFont({
@@ -27,6 +28,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="es">
       <body className={`${bartender.variable} ${lemonMilk.variable} ${poppins.variable} font-body`}>
+        <Navbar />
         {children}
       </body>
     </html>
