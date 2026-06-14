@@ -48,7 +48,7 @@ export default function LoginPage() {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full mb-4 p-2 border rounded font-body"
+          className="w-full mb-4 p-2 border rounded font-buttons"
           required
         />
 
@@ -57,7 +57,7 @@ export default function LoginPage() {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full mb-4 p-2 border rounded font-body"
+          className="w-full mb-4 p-2 border rounded font-buttons"
           required
         />
 
