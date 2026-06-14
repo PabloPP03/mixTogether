@@ -9,6 +9,8 @@ export default function MezclasPage() {
   const [mezclas, setMezclas] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   const [form, setForm] = useState({
     type: "cocktail",
@@ -59,8 +61,17 @@ export default function MezclasPage() {
     e.preventDefault();
     if (!user) return;
 
+    setUploading(true);
+    let imageUrl = form.image_url;
+
+    if (imageFile) {
+      const uploaded = await uploadImage(imageFile);
+      if (uploaded) imageUrl = uploaded;
+    }
+
     const payload = {
       ...form,
+      image_url: imageUrl,
       user_id: user.id,
       ingredients: form.ingredients
         .split(",")
@@ -86,6 +97,8 @@ export default function MezclasPage() {
       });
     }
 
+    setUploading(false);
+    setImageFile(null);
     resetForm();
     fetchMezclas(user.id);
   };
@@ -110,6 +123,24 @@ export default function MezclasPage() {
     if (!confirm("¿Borrar esta mezcla?")) return;
     await fetch(`/api/mezclas/${id}`, { method: "DELETE" });
     fetchMezclas(user.id);
+  };
+
+  const uploadImage = async (file) => {
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+
+    const { error } = await supabase.storage
+      .from("cocktails")
+      .upload(fileName, file);
+
+    if (error) {
+      console.error("Error subiendo imagen:", error);
+      return null;
+    }
+
+    const { data } = supabase.storage.from("cocktails").getPublicUrl(fileName);
+
+    return data.publicUrl;
   };
 
   if (!user) {
@@ -195,22 +226,52 @@ export default function MezclasPage() {
             rows={3}
           />
 
-          <label className="block mb-1 font-semibold">Imagen (URL)</label>
-          <input
-            type="text"
-            value={form.image_url}
-            onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-            className="w-full mb-4 p-2 border rounded"
-            placeholder="https://..."
-          />
+          <label className="block mb-1 font-semibold">Imagen</label>
+          <label
+            className="flex items-center justify-center w-full h-32 border-2 border-dashed rounded cursor-pointer font-buttons font-semibold gap-2"
+            style={{
+              borderColor: COLORS.primary,
+              color: COLORS.primary,
+              backgroundColor: COLORS.background,
+            }}
+          >
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImageFile(e.target.files[0])}
+              className="hidden"
+            />
+            {imageFile ? imageFile.name : "+ Subir imagen"}
+          </label>
+          {imageFile && (
+            <img
+              src={URL.createObjectURL(imageFile)}
+              alt="Preview"
+              className="w-full h-32 object-cover rounded mt-2 mb-4"
+            />
+          )}
+          {!imageFile && form.image_url && (
+            <img
+              src={form.image_url}
+              alt="Imagen actual"
+              className="w-full h-32 object-cover rounded mt-2 mb-4"
+            />
+          )}
 
           <label className="block mb-1 font-semibold">Categoría</label>
-          <input
-            type="text"
+          <select
             value={form.category}
             onChange={(e) => setForm({ ...form, category: e.target.value })}
-            className="w-full mb-4 p-2 border rounded"
-          />
+            className="w-full mb-4 p-2 border rounded font-buttons"
+          >
+            <option value="">Selecciona una categoría</option>
+            <option value="Old Fashioned"> Old Fashioned </option>
+            <option value="Sours"> Sours</option>
+            <option value="Daisies y Smashes"> Daisies / Smashes</option>
+            <option value="Fizzes y Collins"> Fizzes / Collins</option>
+            <option value="Martinis"> Martinis </option>
+            <option value="Highballs"> Highballs </option>
+          </select>
 
           <div className="flex gap-4 mb-4">
             <div className="flex-1">
@@ -265,10 +326,11 @@ export default function MezclasPage() {
             </button>
             <button
               type="submit"
+              disabled={uploading}
               className="font-buttons px-6 py-2 rounded font-semibold"
               style={{ backgroundColor: COLORS.primary, color: COLORS.card }}
             >
-              Guardar
+              {uploading ? "Subiendo..." : "Guardar"}
             </button>
           </div>
         </form>

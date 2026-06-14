@@ -1,9 +1,9 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
-import { COLORS } from '@/lib/constants';
-import { IoHeart, IoHeartOutline } from 'react-icons/io5';
+"use client";
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { COLORS } from "@/lib/constants";
+import { IoHeart, IoHeartOutline } from "react-icons/io5";
 
 export default function DrinkDetailPage() {
   const { id } = useParams();
@@ -23,15 +23,17 @@ export default function DrinkDetailPage() {
       });
 
     const init = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session) {
         setUser(session.user);
 
         const { data: fav } = await supabase
-          .from('favorites')
-          .select('id')
-          .eq('user_id', session.user.id)
-          .eq('drink_id', id)
+          .from("favorites")
+          .select("id")
+          .eq("user_id", session.user.id)
+          .eq("drink_id", id)
           .single();
 
         if (fav) {
@@ -41,9 +43,9 @@ export default function DrinkDetailPage() {
       }
 
       const { count } = await supabase
-        .from('favorites')
-        .select('*', { count: 'exact', head: true })
-        .eq('drink_id', id);
+        .from("favorites")
+        .select("*", { count: "exact", head: true })
+        .eq("drink_id", id);
 
       setLikeCount(count || 0);
     };
@@ -54,14 +56,14 @@ export default function DrinkDetailPage() {
     if (!user) return;
 
     if (isFavorite && favId) {
-      await fetch(`/api/favoritos/${favId}`, { method: 'DELETE' });
+      await fetch(`/api/favoritos/${favId}`, { method: "DELETE" });
       setIsFavorite(false);
       setFavId(null);
       setLikeCount((c) => c - 1);
     } else {
-      const res = await fetch('/api/favoritos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/favoritos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id: user.id, drink_id: id }),
       });
       const newFav = await res.json();
@@ -73,7 +75,10 @@ export default function DrinkDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: COLORS.background }}>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: COLORS.background }}
+      >
         <p className="font-body">Cargando...</p>
       </div>
     );
@@ -81,14 +86,20 @@ export default function DrinkDetailPage() {
 
   if (!drink || drink.error) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: COLORS.background }}>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: COLORS.background }}
+      >
         <p className="font-body">Bebida no encontrada.</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-6" style={{ backgroundColor: COLORS.background }}>
+    <div
+      className="min-h-screen p-6"
+      style={{ backgroundColor: COLORS.background }}
+    >
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col md:flex-row gap-6 mb-8">
           {drink.image_url && (
@@ -105,14 +116,20 @@ export default function DrinkDetailPage() {
             <div className="flex gap-8 mb-4">
               {drink.flavor && (
                 <div>
-                  <h3 className="font-titles text-2xl">Sabor</h3>
+                  <h3 className="font-titles text-lg">Sabor</h3>
                   <p className="font-body uppercase">{drink.flavor}</p>
                 </div>
               )}
               {drink.base && (
                 <div>
-                  <h3 className="font-titles text-2xl">Base</h3>
+                  <h3 className="font-titles text-lg">Base</h3>
                   <p className="font-body uppercase">{drink.base}</p>
+                </div>
+              )}
+              {drink.category && (
+                <div>
+                  <h3 className="font-titles text-lg">Categoría</h3>
+                  <p className="font-body uppercase">{drink.category}</p>
                 </div>
               )}
             </div>
@@ -123,17 +140,27 @@ export default function DrinkDetailPage() {
               className="flex items-center gap-2 font-buttons font-semibold px-4 py-2 rounded border"
               style={{ backgroundColor: COLORS.card }}
             >
-              {isFavorite
-                ? <IoHeart color="red" size={22} />
-                : <IoHeartOutline size={22} />
-              }
-              <span>{likeCount} {likeCount === 1 ? 'Me gusta' : 'Me gusta'}</span>
+              {isFavorite ? (
+                <IoHeart color="red" size={22} />
+              ) : (
+                <IoHeartOutline size={22} />
+              )}
+              <span>
+                {likeCount} {likeCount === 1 ? "Me gusta" : "Me gusta"}
+              </span>
             </button>
-            {!user && <p className="font-body text-xs text-gray-500 mt-1">Inicia sesión para guardar favoritos</p>}
+            {!user && (
+              <p className="font-body text-xs text-gray-500 mt-1">
+                Inicia sesión para guardar favoritos
+              </p>
+            )}
           </div>
         </div>
 
-        <hr className="border-t-2 mb-6" style={{ borderColor: COLORS.primary }} />
+        <hr
+          className="border-t-2 mb-6"
+          style={{ borderColor: COLORS.primary }}
+        />
 
         <h2 className="font-titles text-3xl mb-4">Preparación</h2>
 
@@ -151,14 +178,19 @@ export default function DrinkDetailPage() {
         {drink.steps?.length > 0 && (
           <div>
             <h3 className="font-titles text-2xl mb-2">Modo de preparación</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ol className="space-y-4">
               {drink.steps.map((step, i) => (
-                <div key={i}>
-                  <h4 className="font-titles text-xl mb-1">Paso {i + 1}</h4>
+                <li key={i} className="flex gap-4">
+                  <span
+                    className="font-titles text-xl shrink-0"
+                    style={{ color: COLORS.text }}
+                  >
+                    Paso {i + 1}.
+                  </span>
                   <p className="font-body">{step}</p>
-                </div>
+                </li>
               ))}
-            </div>
+            </ol>
           </div>
         )}
       </div>
