@@ -15,6 +15,8 @@ export default function MocktailsPage() {
   const [flavorFilter, setFlavorFilter] = useState("");
   const [baseFilter, setBaseFilter] = useState("");
   const [sortBy, setSortBy] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
 
   useEffect(() => {
     const loadData = async () => {
@@ -24,11 +26,9 @@ export default function MocktailsPage() {
       ]);
       const bebidas = await bebidasRes.json();
       const mezclas = await mezclasRes.json();
-
       const mezclasConFlag = Array.isArray(mezclas)
         ? mezclas.map((m) => ({ ...m, isUserMix: true }))
         : [];
-
       const all = [...bebidas, ...mezclasConFlag];
       setDrinks(all);
       if (bebidas.length > 0) {
@@ -48,6 +48,10 @@ export default function MocktailsPage() {
     };
     init();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, flavorFilter, baseFilter, sortBy]);
 
   const isFavorite = (drink) => {
     if (drink.isUserMix) return favorites.some((f) => f.mix_id === drink.id);
@@ -104,6 +108,9 @@ export default function MocktailsPage() {
       if (sortBy === "base") return (a.base || "").localeCompare(b.base || "");
       return 0;
     });
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="min-h-screen p-6" style={{ backgroundColor: COLORS.background }}>
@@ -174,7 +181,7 @@ export default function MocktailsPage() {
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-        {filtered.map((drink) => (
+        {paginated.map((drink) => (
           <Link
             key={`${drink.isUserMix ? "mix" : "drink"}-${drink.id}`}
             href={drink.isUserMix ? `/mezclas/${drink.id}` : `/bebidas/${drink.id}`}
@@ -215,6 +222,40 @@ export default function MocktailsPage() {
           </Link>
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex justify-center gap-2 mt-8">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+            className="font-buttons px-3 py-2 rounded border disabled:opacity-40 cursor-pointer"
+            style={{ backgroundColor: COLORS.card }}
+          >
+            ←
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className="font-buttons px-3 py-2 rounded border cursor-pointer"
+              style={{
+                backgroundColor: page === currentPage ? COLORS.primary : COLORS.card,
+                color: page === currentPage ? COLORS.card : COLORS.text,
+              }}
+            >
+              {page}
+            </button>
+          ))}
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="font-buttons px-3 py-2 rounded border disabled:opacity-40 cursor-pointer"
+            style={{ backgroundColor: COLORS.card }}
+          >
+            →
+          </button>
+        </div>
+      )}
     </div>
   );
 }
