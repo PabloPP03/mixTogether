@@ -13,6 +13,7 @@ export default function CocktailsPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [flavorFilter, setFlavorFilter] = useState("");
   const [baseFilter, setBaseFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
   const [sortBy, setSortBy] = useState("");
   const [featured, setFeatured] = useState(null);
 
@@ -27,9 +28,7 @@ export default function CocktailsPage() {
       });
 
     const init = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setUser(session.user);
         const res = await fetch(`/api/favoritos?user_id=${session.user.id}`);
@@ -65,56 +64,46 @@ export default function CocktailsPage() {
 
   const flavors = [...new Set(drinks.map((d) => d.flavor).filter(Boolean))];
   const bases = [...new Set(drinks.map((d) => d.base).filter(Boolean))];
+  const categories = [...new Set(drinks.map((d) => d.category).filter(Boolean))];
 
   const filtered = drinks
     .filter((d) => {
       const matchesSearch = d.name.toLowerCase().includes(search.toLowerCase());
       const matchesFlavor = !flavorFilter || d.flavor === flavorFilter;
       const matchesBase = !baseFilter || d.base === baseFilter;
-      return matchesSearch && matchesFlavor && matchesBase;
+      const matchesCategory = !categoryFilter || d.category === categoryFilter;
+      return matchesSearch && matchesFlavor && matchesBase && matchesCategory;
     })
     .sort((a, b) => {
       if (sortBy === "name_asc") return a.name.localeCompare(b.name);
       if (sortBy === "name_desc") return b.name.localeCompare(a.name);
-      if (sortBy === "flavor")
-        return (a.flavor || "").localeCompare(b.flavor || "");
+      if (sortBy === "flavor") return (a.flavor || "").localeCompare(b.flavor || "");
       if (sortBy === "base") return (a.base || "").localeCompare(b.base || "");
       return 0;
     });
 
   return (
-    <div
-      className="min-h-screen p-6"
-      style={{ backgroundColor: COLORS.background }}
-    >
+    <div className="min-h-screen p-6" style={{ backgroundColor: COLORS.background }}>
       {featured && (
-        <div
-          className="max-w-5xl mx-auto mb-8 flex flex-col md:flex-row rounded-lg overflow-hidden shadow"
-          style={{ backgroundColor: COLORS.card }}
-        >
+        <div className="max-w-5xl mx-auto mb-8 flex flex-col md:flex-row rounded-lg overflow-hidden shadow" style={{ backgroundColor: COLORS.card }}>
           <div className="md:w-64 h-48 md:h-64 shrink-0">
-            <img
-              src={featured.image_url}
-              alt={featured.name}
-              className="w-full h-full object-cover"
-            />
+            <img src={featured.image_url} alt={featured.name} className="w-full h-full object-cover" />
           </div>
           <div className="p-6 flex flex-col justify-center">
-            <h2 className="font-titles text-2xl mb-2">
-              Historia de los Cócteles
-            </h2>
+            <h2 className="font-titles text-2xl mb-2">Historia de los Cócteles</h2>
             <p className="font-buttons text-sm">
               Los cócteles nacieron en el siglo XIX en Estados Unidos, donde los
-              bartenders comenzaron a mezclar licores con azúcar, agua y
-              bitters. La palabra "cocktail" apareció por primera vez en 1806.
-              Con la Prohibición (1920-1933), los cócteles evolucionaron para
-              disimular el sabor del alcohol ilegal, dando lugar a recetas
-              creativas que hoy son clásicos universales. Cada trago cuenta una
-              historia de ingenio, cultura y tradición.
+              bartenders comenzaron a mezclar licores con azúcar, agua y bitters.
+              La palabra "cocktail" apareció por primera vez en 1806. Con la
+              Prohibición (1920-1933), los cócteles evolucionaron para disimular
+              el sabor del alcohol ilegal, dando lugar a recetas creativas que hoy
+              son clásicos universales. Cada trago cuenta una historia de ingenio,
+              cultura y tradición.
             </p>
           </div>
         </div>
       )}
+
       <h1 className="font-titles text-4xl text-center mb-6">Cocktails</h1>
 
       <div className="max-w-xl mx-auto mb-4 flex gap-2 items-start">
@@ -147,10 +136,7 @@ export default function CocktailsPage() {
       </div>
 
       {showFilters && (
-        <div
-          className="max-w-xl mx-auto mb-8 flex flex-col sm:flex-row gap-3 p-3 rounded border font-body"
-          style={{ backgroundColor: COLORS.card }}
-        >
+        <div className="max-w-xl mx-auto mb-8 flex flex-col sm:flex-row gap-3 p-3 rounded border font-body" style={{ backgroundColor: COLORS.card }}>
           <div className="flex-1">
             <label className="block text-sm font-semibold mb-1">Sabor</label>
             <select
@@ -160,9 +146,7 @@ export default function CocktailsPage() {
             >
               <option value="">Todos</option>
               {flavors.map((f) => (
-                <option key={f} value={f}>
-                  {f}
-                </option>
+                <option key={f} value={f}>{f}</option>
               ))}
             </select>
           </div>
@@ -175,9 +159,20 @@ export default function CocktailsPage() {
             >
               <option value="">Todas</option>
               {bases.map((b) => (
-                <option key={b} value={b}>
-                  {b}
-                </option>
+                <option key={b} value={b}>{b}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex-1">
+            <label className="block text-sm font-semibold mb-1">Categoría</label>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="w-full p-2 border rounded"
+            >
+              <option value="">Todas</option>
+              {categories.map((c) => (
+                <option key={c} value={c}>{c}</option>
               ))}
             </select>
           </div>
@@ -193,11 +188,7 @@ export default function CocktailsPage() {
             style={{ backgroundColor: COLORS.card }}
           >
             {drink.image_url && (
-              <img
-                src={drink.image_url}
-                alt={drink.name}
-                className="w-full h-40 object-cover"
-              />
+              <img src={drink.image_url} alt={drink.name} className="w-full h-40 object-cover" />
             )}
             {user && (
               <button
