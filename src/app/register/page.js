@@ -69,7 +69,7 @@ export default function RegisterPage() {
 
         <div className="flex gap-2 mb-4">
           <div className="flex-1">
-            <label className="block mb-1 text-sm font-semibold font-body">Nombre de usuario</label>
+            <label className="block mb-1 text-sm font-semibold font-body">Nombre</label>
             <input
               type="text"
               value={username}

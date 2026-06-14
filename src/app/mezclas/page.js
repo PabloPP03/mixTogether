@@ -313,7 +313,7 @@ export default function MezclasPage() {
             onChange={(e) => setForm({ ...form, steps: e.target.value })}
             className="w-full mb-4 p-2 border rounded"
             rows={4}
-            placeholder="Paso 1: ...&#10;Paso 2: ..."
+            placeholder={`Paso 1: Añade los ingredientes...\nPaso 2: Mezcla bien...\nPaso 3: Sirve frío...`}
           />
 
           <div className="flex justify-end gap-3">

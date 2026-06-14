@@ -7,6 +7,7 @@ import { IoHeart, IoHeartOutline, IoFilterOutline } from "react-icons/io5";
 
 export default function CocktailsPage() {
   const [drinks, setDrinks] = useState([]);
+  const [featured, setFeatured] = useState(null);
   const [search, setSearch] = useState("");
   const [user, setUser] = useState(null);
   const [favorites, setFavorites] = useState([]);
@@ -15,22 +16,30 @@ export default function CocktailsPage() {
   const [baseFilter, setBaseFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [sortBy, setSortBy] = useState("");
-  const [featured, setFeatured] = useState(null);
 
   useEffect(() => {
-    fetch("/api/bebidas?type=cocktail")
-      .then((res) => res.json())
-      .then((data) => {
-        setDrinks(data);
-        if (data.length > 0) {
-          setFeatured(data[Math.floor(Math.random() * data.length)]);
-        }
-      });
+    const loadData = async () => {
+      const [bebidasRes, mezclasRes] = await Promise.all([
+        fetch("/api/bebidas?type=cocktail"),
+        fetch("/api/mezclas?type=cocktail"),
+      ]);
+      const bebidas = await bebidasRes.json();
+      const mezclas = await mezclasRes.json();
+
+      const mezclasConFlag = Array.isArray(mezclas)
+        ? mezclas.map((m) => ({ ...m, isUserMix: true }))
+        : [];
+
+      const all = [...bebidas, ...mezclasConFlag];
+      setDrinks(all);
+      if (bebidas.length > 0) {
+        setFeatured(bebidas[Math.floor(Math.random() * bebidas.length)]);
+      }
+    };
+    loadData();
 
     const init = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setUser(session.user);
         const res = await fetch(`/api/favoritos?user_id=${session.user.id}`);
@@ -41,22 +50,37 @@ export default function CocktailsPage() {
     init();
   }, []);
 
-  const isFavorite = (drinkId) => favorites.some((f) => f.drink_id === drinkId);
+  const isFavorite = (drink) => {
+    if (drink.isUserMix) return favorites.some((f) => f.mix_id === drink.id);
+    return favorites.some((f) => f.drink_id === drink.id);
+  };
 
-  const toggleFavorite = async (e, drinkId) => {
+  const toggleFavorite = async (e, drink) => {
     e.preventDefault();
     if (!user) return;
 
-    const existing = favorites.find((f) => f.drink_id === drinkId);
-
-    if (existing) {
-      await fetch(`/api/favoritos/${existing.id}`, { method: "DELETE" });
+    if (drink.isUserMix) {
+      const existing = favorites.find((f) => f.mix_id === drink.id);
+      if (existing) {
+        await fetch(`/api/favoritos/${existing.id}`, { method: "DELETE" });
+      } else {
+        await fetch("/api/favoritos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: user.id, mix_id: drink.id }),
+        });
+      }
     } else {
-      await fetch("/api/favoritos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: user.id, drink_id: drinkId }),
-      });
+      const existing = favorites.find((f) => f.drink_id === drink.id);
+      if (existing) {
+        await fetch(`/api/favoritos/${existing.id}`, { method: "DELETE" });
+      } else {
+        await fetch("/api/favoritos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: user.id, drink_id: drink.id }),
+        });
+      }
     }
 
     const res = await fetch(`/api/favoritos?user_id=${user.id}`);
@@ -66,9 +90,7 @@ export default function CocktailsPage() {
 
   const flavors = [...new Set(drinks.map((d) => d.flavor).filter(Boolean))];
   const bases = [...new Set(drinks.map((d) => d.base).filter(Boolean))];
-  const categories = [
-    ...new Set(drinks.map((d) => d.category).filter(Boolean)),
-  ];
+  const categories = [...new Set(drinks.map((d) => d.category).filter(Boolean))];
 
   const filtered = drinks
     .filter((d) => {
@@ -81,41 +103,28 @@ export default function CocktailsPage() {
     .sort((a, b) => {
       if (sortBy === "name_asc") return a.name.localeCompare(b.name);
       if (sortBy === "name_desc") return b.name.localeCompare(a.name);
-      if (sortBy === "flavor")
-        return (a.flavor || "").localeCompare(b.flavor || "");
+      if (sortBy === "flavor") return (a.flavor || "").localeCompare(b.flavor || "");
       if (sortBy === "base") return (a.base || "").localeCompare(b.base || "");
       return 0;
     });
 
   return (
-    <div
-      className="min-h-screen p-6"
-      style={{ backgroundColor: COLORS.background }}
-    >
+    <div className="min-h-screen p-6" style={{ backgroundColor: COLORS.background }}>
       {featured && (
-        <div
-          className="max-w-5xl mx-auto mb-8 flex flex-col md:flex-row rounded-lg overflow-hidden shadow"
-          style={{ backgroundColor: COLORS.card }}
-        >
+        <div className="max-w-5xl mx-auto mb-8 flex flex-col md:flex-row rounded-lg overflow-hidden shadow" style={{ backgroundColor: COLORS.card }}>
           <div className="md:w-64 h-48 md:h-64 shrink-0">
-            <img
-              src={featured.image_url}
-              alt={featured.name}
-              className="w-full h-full object-cover"
-            />
+            <img src={featured.image_url} alt={featured.name} className="w-full h-full object-cover" />
           </div>
           <div className="p-6 flex flex-col justify-center">
-            <h2 className="font-titles text-2xl mb-2">
-              Historia de los Cócteles
-            </h2>
+            <h2 className="font-titles text-2xl mb-2">Historia de los Cócteles</h2>
             <p className="font-buttons text-sm">
               Los cócteles nacieron en el siglo XIX en Estados Unidos, donde los
-              bartenders comenzaron a mezclar licores con azúcar, agua y
-              bitters. La palabra "cocktail" apareció por primera vez en 1806.
-              Con la Prohibición (1920-1933), los cócteles evolucionaron para
-              disimular el sabor del alcohol ilegal, dando lugar a recetas
-              creativas que hoy son clásicos universales. Cada trago cuenta una
-              historia de ingenio, cultura y tradición.
+              bartenders comenzaron a mezclar licores con azúcar, agua y bitters.
+              La palabra "cocktail" apareció por primera vez en 1806. Con la
+              Prohibición (1920-1933), los cócteles evolucionaron para disimular
+              el sabor del alcohol ilegal, dando lugar a recetas creativas que hoy
+              son clásicos universales. Cada trago cuenta una historia de ingenio,
+              cultura y tradición.
             </p>
           </div>
         </div>
@@ -155,55 +164,26 @@ export default function CocktailsPage() {
       </div>
 
       {showFilters && (
-        <div
-          className="max-w-xl mx-auto mb-8 flex flex-col sm:flex-row gap-3 p-3 rounded border font-body"
-          style={{ backgroundColor: COLORS.card }}
-        >
+        <div className="max-w-xl mx-auto mb-8 flex flex-col sm:flex-row gap-3 p-3 rounded border font-body" style={{ backgroundColor: COLORS.card }}>
           <div className="flex-1">
             <label className="block text-sm font-semibold mb-1">Sabor</label>
-            <select
-              value={flavorFilter}
-              onChange={(e) => setFlavorFilter(e.target.value)}
-              className="w-full p-2 border rounded"
-            >
+            <select value={flavorFilter} onChange={(e) => setFlavorFilter(e.target.value)} className="w-full p-2 border rounded">
               <option value="">Todos</option>
-              {flavors.map((f) => (
-                <option key={f} value={f}>
-                  {f}
-                </option>
-              ))}
+              {flavors.map((f) => <option key={f} value={f}>{f}</option>)}
             </select>
           </div>
           <div className="flex-1">
             <label className="block text-sm font-semibold mb-1">Base</label>
-            <select
-              value={baseFilter}
-              onChange={(e) => setBaseFilter(e.target.value)}
-              className="w-full p-2 border rounded"
-            >
+            <select value={baseFilter} onChange={(e) => setBaseFilter(e.target.value)} className="w-full p-2 border rounded">
               <option value="">Todas</option>
-              {bases.map((b) => (
-                <option key={b} value={b}>
-                  {b}
-                </option>
-              ))}
+              {bases.map((b) => <option key={b} value={b}>{b}</option>)}
             </select>
           </div>
           <div className="flex-1">
-            <label className="block text-sm font-semibold mb-1">
-              Categoría
-            </label>
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-full p-2 border rounded"
-            >
+            <label className="block text-sm font-semibold mb-1">Categoría</label>
+            <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="w-full p-2 border rounded">
               <option value="">Todas</option>
-              {categories.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
+              {categories.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
         </div>
@@ -212,29 +192,29 @@ export default function CocktailsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
         {filtered.map((drink) => (
           <Link
-            key={drink.id}
-            href={`/bebidas/${drink.id}`}
+            key={`${drink.isUserMix ? 'mix' : 'drink'}-${drink.id}`}
+            href={drink.isUserMix ? `/mezclas/${drink.id}` : `/bebidas/${drink.id}`}
             className="rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow relative"
             style={{ backgroundColor: COLORS.card }}
           >
             {drink.image_url && (
-              <img
-                src={drink.image_url}
-                alt={drink.name}
-                className="w-full h-40 object-cover"
-              />
+              <img src={drink.image_url} alt={drink.name} className="w-full h-40 object-cover" />
+            )}
+            {drink.isUserMix && (
+              <span
+                className="absolute top-2 left-2 font-buttons text-xs px-2 py-1 rounded"
+                style={{ backgroundColor: COLORS.primary, color: COLORS.card }}
+              >
+                Creación
+              </span>
             )}
             {user && (
               <button
-                onClick={(e) => toggleFavorite(e, drink.id)}
+                onClick={(e) => toggleFavorite(e, drink)}
                 className="absolute top-2 right-2 cursor-pointer"
               >
                 <span className="bg-white rounded-full p-1 flex items-center justify-center">
-                  {isFavorite(drink.id) ? (
-                    <IoHeart color="red" size={22} />
-                  ) : (
-                    <IoHeartOutline size={22} />
-                  )}
+                  {isFavorite(drink) ? <IoHeart color="red" size={22} /> : <IoHeartOutline size={22} />}
                 </span>
               </button>
             )}

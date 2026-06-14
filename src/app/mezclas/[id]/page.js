@@ -1,12 +1,18 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import { COLORS } from '@/lib/constants';
+"use client";
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { COLORS } from "@/lib/constants";
+import { IoHeart, IoHeartOutline } from "react-icons/io5";
 
 export default function MezclaDetailPage() {
   const { id } = useParams();
   const [mix, setMix] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [favId, setFavId] = useState(null);
 
   useEffect(() => {
     fetch(`/api/mezclas/${id}`)
@@ -15,7 +21,55 @@ export default function MezclaDetailPage() {
         setMix(data);
         setLoading(false);
       });
+
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setUser(session.user);
+
+        const { data: fav } = await supabase
+          .from("favorites")
+          .select("id")
+          .eq("user_id", session.user.id)
+          .eq("mix_id", id)
+          .single();
+
+        if (fav) {
+          setIsFavorite(true);
+          setFavId(fav.id);
+        }
+      }
+
+      const { count } = await supabase
+        .from("favorites")
+        .select("*", { count: "exact", head: true })
+        .eq("mix_id", id);
+
+      setLikeCount(count || 0);
+    };
+    init();
   }, [id]);
+
+  const toggleFavorite = async () => {
+    if (!user) return;
+
+    if (isFavorite && favId) {
+      await fetch(`/api/favoritos/${favId}`, { method: "DELETE" });
+      setIsFavorite(false);
+      setFavId(null);
+      setLikeCount((c) => c - 1);
+    } else {
+      const res = await fetch("/api/favoritos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: user.id, mix_id: id }),
+      });
+      const newFav = await res.json();
+      setIsFavorite(true);
+      setFavId(newFav.id);
+      setLikeCount((c) => c + 1);
+    }
+  };
 
   if (loading) {
     return (
@@ -44,11 +98,11 @@ export default function MezclaDetailPage() {
               className="w-full md:w-64 h-64 object-cover rounded-lg"
             />
           )}
-          <div>
+          <div className="flex-1">
             <h1 className="font-titles text-4xl mb-4">{mix.name}</h1>
             <p className="font-body mb-4">{mix.description}</p>
 
-            <div className="flex gap-8">
+            <div className="flex gap-8 mb-4">
               {mix.flavor && (
                 <div>
                   <h3 className="font-titles text-lg">Sabor</h3>
@@ -68,6 +122,16 @@ export default function MezclaDetailPage() {
                 </div>
               )}
             </div>
+
+            <button
+              onClick={toggleFavorite}
+              className="flex items-center gap-2 font-buttons font-semibold px-4 py-2 rounded border"
+              style={{ backgroundColor: COLORS.card }}
+            >
+              {isFavorite ? <IoHeart color="red" size={22} /> : <IoHeartOutline size={22} />}
+              <span>{likeCount} Me gusta</span>
+            </button>
+            {!user && <p className="font-body text-xs text-gray-500 mt-1">Inicia sesión para guardar favoritos</p>}
           </div>
         </div>
 
@@ -89,14 +153,16 @@ export default function MezclaDetailPage() {
         {mix.steps?.length > 0 && (
           <div>
             <h3 className="font-titles text-xl mb-2">Modo de preparación</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ol className="space-y-4">
               {mix.steps.map((step, i) => (
-                <div key={i}>
-                  <h4 className="font-titles text-lg mb-1">Paso {i + 1}</h4>
+                <li key={i} className="flex gap-4">
+                  <span className="font-titles text-xl shrink-0" style={{ color: COLORS.text }}>
+                    Paso {i + 1}.
+                  </span>
                   <p className="font-body">{step}</p>
-                </div>
+                </li>
               ))}
-            </div>
+            </ol>
           </div>
         )}
       </div>

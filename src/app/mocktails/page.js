@@ -17,14 +17,25 @@ export default function MocktailsPage() {
   const [sortBy, setSortBy] = useState("");
 
   useEffect(() => {
-    fetch("/api/bebidas?type=mocktail")
-      .then((res) => res.json())
-      .then((data) => {
-        setDrinks(data);
-        if (data.length > 0) {
-          setFeatured(data[Math.floor(Math.random() * data.length)]);
-        }
-      });
+    const loadData = async () => {
+      const [bebidasRes, mezclasRes] = await Promise.all([
+        fetch("/api/bebidas?type=mocktail"),
+        fetch("/api/mezclas?type=mocktail"),
+      ]);
+      const bebidas = await bebidasRes.json();
+      const mezclas = await mezclasRes.json();
+
+      const mezclasConFlag = Array.isArray(mezclas)
+        ? mezclas.map((m) => ({ ...m, isUserMix: true }))
+        : [];
+
+      const all = [...bebidas, ...mezclasConFlag];
+      setDrinks(all);
+      if (bebidas.length > 0) {
+        setFeatured(bebidas[Math.floor(Math.random() * bebidas.length)]);
+      }
+    };
+    loadData();
 
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -38,22 +49,37 @@ export default function MocktailsPage() {
     init();
   }, []);
 
-  const isFavorite = (drinkId) => favorites.some((f) => f.drink_id === drinkId);
+  const isFavorite = (drink) => {
+    if (drink.isUserMix) return favorites.some((f) => f.mix_id === drink.id);
+    return favorites.some((f) => f.drink_id === drink.id);
+  };
 
-  const toggleFavorite = async (e, drinkId) => {
+  const toggleFavorite = async (e, drink) => {
     e.preventDefault();
     if (!user) return;
 
-    const existing = favorites.find((f) => f.drink_id === drinkId);
-
-    if (existing) {
-      await fetch(`/api/favoritos/${existing.id}`, { method: "DELETE" });
+    if (drink.isUserMix) {
+      const existing = favorites.find((f) => f.mix_id === drink.id);
+      if (existing) {
+        await fetch(`/api/favoritos/${existing.id}`, { method: "DELETE" });
+      } else {
+        await fetch("/api/favoritos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: user.id, mix_id: drink.id }),
+        });
+      }
     } else {
-      await fetch("/api/favoritos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: user.id, drink_id: drinkId }),
-      });
+      const existing = favorites.find((f) => f.drink_id === drink.id);
+      if (existing) {
+        await fetch(`/api/favoritos/${existing.id}`, { method: "DELETE" });
+      } else {
+        await fetch("/api/favoritos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: user.id, drink_id: drink.id }),
+        });
+      }
     }
 
     const res = await fetch(`/api/favoritos?user_id=${user.id}`);
@@ -132,28 +158,16 @@ export default function MocktailsPage() {
         <div className="max-w-xl mx-auto mb-8 flex flex-col sm:flex-row gap-3 p-3 rounded border font-body" style={{ backgroundColor: COLORS.card }}>
           <div className="flex-1">
             <label className="block text-sm font-semibold mb-1">Sabor</label>
-            <select
-              value={flavorFilter}
-              onChange={(e) => setFlavorFilter(e.target.value)}
-              className="w-full p-2 border rounded"
-            >
+            <select value={flavorFilter} onChange={(e) => setFlavorFilter(e.target.value)} className="w-full p-2 border rounded">
               <option value="">Todos</option>
-              {flavors.map((f) => (
-                <option key={f} value={f}>{f}</option>
-              ))}
+              {flavors.map((f) => <option key={f} value={f}>{f}</option>)}
             </select>
           </div>
           <div className="flex-1">
             <label className="block text-sm font-semibold mb-1">Base</label>
-            <select
-              value={baseFilter}
-              onChange={(e) => setBaseFilter(e.target.value)}
-              className="w-full p-2 border rounded"
-            >
+            <select value={baseFilter} onChange={(e) => setBaseFilter(e.target.value)} className="w-full p-2 border rounded">
               <option value="">Todas</option>
-              {bases.map((b) => (
-                <option key={b} value={b}>{b}</option>
-              ))}
+              {bases.map((b) => <option key={b} value={b}>{b}</option>)}
             </select>
           </div>
         </div>
@@ -162,21 +176,29 @@ export default function MocktailsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
         {filtered.map((drink) => (
           <Link
-            key={drink.id}
-            href={`/bebidas/${drink.id}`}
+            key={`${drink.isUserMix ? "mix" : "drink"}-${drink.id}`}
+            href={drink.isUserMix ? `/mezclas/${drink.id}` : `/bebidas/${drink.id}`}
             className="rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow relative"
             style={{ backgroundColor: COLORS.card }}
           >
             {drink.image_url && (
               <img src={drink.image_url} alt={drink.name} className="w-full h-40 object-cover" />
             )}
+            {drink.isUserMix && (
+              <span
+                className="absolute top-2 left-2 font-buttons text-xs px-2 py-1 rounded"
+                style={{ backgroundColor: COLORS.primary, color: COLORS.card }}
+              >
+                Creación
+              </span>
+            )}
             {user && (
               <button
-                onClick={(e) => toggleFavorite(e, drink.id)}
+                onClick={(e) => toggleFavorite(e, drink)}
                 className="absolute top-2 right-2 cursor-pointer"
               >
                 <span className="bg-white rounded-full p-1 flex items-center justify-center">
-                  {isFavorite(drink.id) ? (
+                  {isFavorite(drink) ? (
                     <IoHeart color="red" size={22} />
                   ) : (
                     <IoHeartOutline size={22} />
