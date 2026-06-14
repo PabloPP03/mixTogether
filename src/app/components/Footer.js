@@ -4,7 +4,7 @@ import { IoLogoInstagram, IoLogoFacebook, IoLogoLinkedin } from 'react-icons/io5
 export default function Footer() {
   return (
     <footer className="px-6 py-6 text-center" style={{ backgroundColor: COLORS.primary, color: COLORS.card }}>
-      <p className="font-titles text-lg mb-2">Mx Together</p>
+      <p className="font-titles text-lg mb-2">Mix Together</p>
 
       <div className="font-buttons text-sm mb-2">
         <span className="font-semibold">AYUDA</span>

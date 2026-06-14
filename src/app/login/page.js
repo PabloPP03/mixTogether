@@ -65,7 +65,7 @@ export default function LoginPage() {
           <a href="#" className="text-[#E48700]">Olvidé mi contraseña</a>
         </p>
 
-        <button type="submit" onClick={handleLogin} className="w-full font-buttons font-semibold py-2 rounded" style={{ backgroundColor: '#E48700', color: '#FFFEF9' }}>
+        <button type="submit" onClick={handleLogin} className="w-full font-buttons font-semibold py-2 rounded cursor-pointer" style={{ backgroundColor: '#E48700', color: '#FFFEF9' }}>
           Iniciar Sesión
         </button>
       </div>

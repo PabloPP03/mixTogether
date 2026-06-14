@@ -167,7 +167,7 @@ export default function MezclasPage() {
             resetForm();
             setShowForm(!showForm);
           }}
-          className="font-buttons font-semibold px-6 py-3 rounded"
+          className="font-buttons font-semibold px-6 py-3 rounded cursor-pointer"
           style={{ backgroundColor: COLORS.primary, color: COLORS.card }}
         >
           {showForm ? "Cancelar" : "Crear nueva mezcla"}
@@ -320,14 +320,14 @@ export default function MezclasPage() {
             <button
               type="button"
               onClick={resetForm}
-              className="font-buttons px-6 py-2 rounded border"
+              className="font-buttons px-6 py-2 rounded border cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={uploading}
-              className="font-buttons px-6 py-2 rounded font-semibold"
+              className="font-buttons px-6 py-2 rounded font-semibold cursor-pointer"
               style={{ backgroundColor: COLORS.primary, color: COLORS.card }}
             >
               {uploading ? "Subiendo..." : "Guardar"}
@@ -356,13 +356,13 @@ export default function MezclasPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => handleEdit(m)}
-                className="font-buttons text-sm px-3 py-1 rounded border"
+                className="font-buttons text-sm px-3 py-1 rounded border cursor-pointer"
               >
                 Editar
               </button>
               <button
                 onClick={() => handleDelete(m.id)}
-                className="font-buttons text-sm px-3 py-1 rounded border text-red-600"
+                className="font-buttons text-sm px-3 py-1 rounded border text-red-600 cursor-pointer"
               >
                 Borrar
               </button>
