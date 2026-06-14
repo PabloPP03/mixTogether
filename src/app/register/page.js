@@ -23,8 +23,6 @@ export default function RegisterPage() {
       }
     });
 
-    console.log('signUp result:', data, error);
-
     if (error) {
       setError(error.message);
       return;
@@ -41,63 +39,76 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FDF7E1]">
-      <form onSubmit={handleRegister} className="bg-[#FFFEF9] p-8 rounded-lg shadow-md w-96">
-        <h1 className="text-2xl font-bold mb-6 text-center">Regístrate</h1>
+    <div
+      className="min-h-screen flex items-center justify-center relative"
+      style={{
+        backgroundImage: 'url(https://hiskhfhkrikidbgoilrp.supabase.co/storage/v1/object/public/cocktails/edgar-chaparro-Lwx-q6OdGAc-unsplash.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      {/* Overlay oscuro */}
+      <div className="absolute inset-0 bg-black opacity-50" />
+
+      <div className="relative z-10 bg-[#FFFEF9] p-8 rounded-lg shadow-md w-96">
+        <p className="text-right text-sm mb-2">
+          ¿Ya eres usuario? <a href="/login" className="text-[#E48700] font-semibold">Inicia sesión</a>
+        </p>
+        <h1 className="font-titles text-3xl mb-6">Regístrate</h1>
 
         {error && <p className="text-red-500 mb-4">{error}</p>}
 
-        <label className="block mb-1 text-sm font-semibold">Introduce un correo electrónico</label>
+        <label className="block mb-1 text-sm font-semibold font-body">Introduce un correo electrónico</label>
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full mb-4 p-2 border rounded"
+          className="w-full mb-4 p-2 border rounded font-body"
           required
         />
 
         <div className="flex gap-2 mb-4">
           <div className="flex-1">
-            <label className="block mb-1 text-sm font-semibold">Nombre de usuario</label>
+            <label className="block mb-1 text-sm font-semibold font-body">Nombre de usuario</label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border rounded font-body"
               required
             />
           </div>
           <div className="flex-1">
-            <label className="block mb-1 text-sm font-semibold">Fecha de nacimiento</label>
+            <label className="block mb-1 text-sm font-semibold font-body">Fecha de nacimiento</label>
             <input
               type="date"
               value={birthDate}
               onChange={(e) => setBirthDate(e.target.value)}
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border rounded font-body"
               required
             />
           </div>
         </div>
 
-        <label className="block mb-1 text-sm font-semibold">Introduce una contraseña</label>
+        <label className="block mb-1 text-sm font-semibold font-body">Introduce una contraseña</label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full mb-1 p-2 border rounded"
+          className="w-full mb-1 p-2 border rounded font-body"
           required
           minLength={12}
         />
-        <p className="text-xs text-gray-500 mb-4">Longitud mínima: 12 caracteres</p>
+        <p className="text-xs text-gray-500 mb-4 font-body">Longitud mínima: 12 caracteres</p>
 
-        <button type="submit" className="w-full bg-[#E48700] text-white py-2 rounded font-semibold cursor-pointer">
+        <button
+          onClick={handleRegister}
+          className="w-full font-buttons font-semibold py-2 rounded"
+          style={{ backgroundColor: '#E48700', color: '#FFFEF9' }}
+        >
           Registrarse
         </button>
-
-        <p className="text-center mt-4 text-sm">
-          ¿Ya eres usuario? <a href="/login" className="text-[#E48700] font-semibold">Inicia sesión</a>
-        </p>
-      </form>
+      </div>
     </div>
   );
 }

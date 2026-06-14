@@ -3,13 +3,13 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { COLORS } from "@/lib/constants";
-import { IoHeart } from "react-icons/io5";
-import { IoPerson } from "react-icons/io5";
+import { IoHeart, IoPerson } from "react-icons/io5";
 
 export default function PerfilPage() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [favorites, setFavorites] = useState([]);
+  const [search, setSearch] = useState('');
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ username: "", bio: "" });
   const [loading, setLoading] = useState(true);
@@ -61,6 +61,12 @@ export default function PerfilPage() {
     setFavorites(favorites.filter((f) => f.id !== favId));
   };
 
+  const filteredFavorites = favorites.filter((fav) => {
+    const item = fav.drinks || fav.mixes;
+    if (!item) return false;
+    return item.name.toLowerCase().includes(search.toLowerCase());
+  });
+
   if (loading) {
     return (
       <div
@@ -91,7 +97,7 @@ export default function PerfilPage() {
       <div className="max-w-3xl mx-auto">
         <div className="flex flex-col sm:flex-row items-center gap-6 mb-10">
           <div
-            className="w-32 h-32 rounded-full flex items-center justify-center text-5xl"
+            className="w-32 h-32 rounded-full flex items-center justify-center"
             style={{ backgroundColor: COLORS.card }}
           >
             <IoPerson size={60} />
@@ -123,7 +129,7 @@ export default function PerfilPage() {
               <div className="flex gap-3">
                 <button
                   onClick={handleSave}
-                  className="font-buttons px-4 py-2 rounded font-semibold"
+                  className="font-buttons px-4 py-2 rounded font-semibold cursor-pointer"
                   style={{
                     backgroundColor: COLORS.primary,
                     color: COLORS.card,
@@ -133,7 +139,7 @@ export default function PerfilPage() {
                 </button>
                 <button
                   onClick={() => setEditing(false)}
-                  className="font-buttons px-4 py-2 rounded border"
+                  className="font-buttons px-4 py-2 rounded border cursor-pointer"
                 >
                   Cancelar
                 </button>
@@ -154,7 +160,7 @@ export default function PerfilPage() {
               </p>
               <button
                 onClick={() => setEditing(true)}
-                className="font-buttons px-4 py-2 rounded font-semibold"
+                className="font-buttons px-4 py-2 rounded font-semibold cursor-pointer"
                 style={{ backgroundColor: COLORS.primary, color: COLORS.card }}
               >
                 Editar perfil
@@ -163,21 +169,30 @@ export default function PerfilPage() {
           )}
         </div>
 
-        <h2 className="font-titles text-3xl mb-4">Bebidas Favoritas</h2>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-4">
+          <h2 className="font-titles text-3xl">Bebidas Favoritas</h2>
+          <input
+            type="text"
+            placeholder="Buscar favoritos..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="p-2 border rounded font-body w-full sm:w-64 bg-white"
+          />
+        </div>
 
-        {favorites.length === 0 ? (
+        {filteredFavorites.length === 0 ? (
           <p className="font-body text-gray-500">
-            Aún no tienes bebidas favoritas.
+            {search ? 'No se encontraron favoritos con esa búsqueda.' : 'Aún no tienes bebidas favoritas.'}
           </p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {favorites.map((fav) => {
+            {filteredFavorites.map((fav) => {
               const item = fav.drinks || fav.mixes;
               if (!item) return null;
               return (
                 <Link
                   key={fav.id}
-                  href={fav.drinks ? `/bebidas/${item.id}` : "#"}
+                  href={fav.drinks ? `/bebidas/${item.id}` : `/mezclas/${item.id}`}
                   className="rounded-lg shadow overflow-hidden relative"
                   style={{ backgroundColor: COLORS.card }}
                 >
@@ -199,10 +214,10 @@ export default function PerfilPage() {
                       e.preventDefault();
                       handleRemoveFavorite(fav.id);
                     }}
-                    className="absolute top-2 right-2 text-xl"
+                    className="absolute top-2 right-2 cursor-pointer"
                   >
                     <span className="bg-white rounded-full p-1 flex items-center justify-center">
-                        <IoHeart color="red" size={22} />
+                      <IoHeart color="red" size={22} />
                     </span>
                   </button>
                 </Link>
