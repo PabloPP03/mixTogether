@@ -137,7 +137,7 @@ export default function DrinkDetailPage() {
             {/* Botón favorito + contador */}
             <button
               onClick={toggleFavorite}
-              className="flex items-center gap-2 font-buttons font-semibold px-4 py-2 rounded border"
+              className="flex items-center gap-2 font-buttons font-semibold px-4 py-2 rounded border cursor-pointer"
               style={{ backgroundColor: COLORS.card }}
             >
               {isFavorite ? (

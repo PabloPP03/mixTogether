@@ -103,7 +103,7 @@ export default function RegisterPage() {
 
         <button
           onClick={handleRegister}
-          className="w-full font-buttons font-semibold py-2 rounded"
+          className="w-full font-buttons font-semibold py-2 rounded cursor-pointer"
           style={{ backgroundColor: '#E48700', color: '#FFFEF9' }}
         >
           Registrarse

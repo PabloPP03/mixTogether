@@ -27,9 +27,7 @@ export default function MocktailsPage() {
       });
 
     const init = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setUser(session.user);
         const res = await fetch(`/api/favoritos?user_id=${session.user.id}`);
@@ -76,54 +74,50 @@ export default function MocktailsPage() {
     .sort((a, b) => {
       if (sortBy === "name_asc") return a.name.localeCompare(b.name);
       if (sortBy === "name_desc") return b.name.localeCompare(a.name);
-      if (sortBy === "flavor")
-        return (a.flavor || "").localeCompare(b.flavor || "");
+      if (sortBy === "flavor") return (a.flavor || "").localeCompare(b.flavor || "");
       if (sortBy === "base") return (a.base || "").localeCompare(b.base || "");
       return 0;
     });
 
   return (
-    <div
-      className="min-h-screen p-6"
-      style={{ backgroundColor: COLORS.background }}
-    >
+    <div className="min-h-screen p-6" style={{ backgroundColor: COLORS.background }}>
       {featured && (
-<div className="max-w-5xl mx-auto mb-8 flex flex-col md:flex-row rounded-lg overflow-hidden shadow" style={{ backgroundColor: COLORS.card }}>
-  <div className="md:w-64 h-48 md:h-64 shrink-0">
-    <img
-      src={featured.image_url}
-      alt={featured.name}
-      className="w-full h-full object-cover"
-    />
-  </div>
-  <div className="p-6 flex flex-col justify-center">
-    <h2 className="font-titles text-2xl mb-2">Historia de los Mocktails</h2>
-    <p className="font-buttons text-sm">
-      Los mocktails surgieron como alternativa sin alcohol a los cócteles clásicos, ganando popularidad en el siglo XX con el movimiento por la salud y el bienestar. Lejos de ser simples zumos, los mocktails combinan siropes artesanales, hierbas frescas, especias y técnicas de bartending profesional para crear bebidas sofisticadas que cualquiera puede disfrutar, sin importar su elección de consumo.
-    </p>
-  </div>
-</div>
+        <div className="max-w-5xl mx-auto mb-8 flex flex-col md:flex-row rounded-lg overflow-hidden shadow" style={{ backgroundColor: COLORS.card }}>
+          <div className="md:w-64 h-48 md:h-64 shrink-0">
+            <img src={featured.image_url} alt={featured.name} className="w-full h-full object-cover" />
+          </div>
+          <div className="p-6 flex flex-col justify-center">
+            <h2 className="font-titles text-2xl mb-2">Historia de los Mocktails</h2>
+            <p className="font-buttons text-sm">
+              Los mocktails surgieron como alternativa sin alcohol a los cócteles clásicos, ganando popularidad en el siglo XX con el movimiento por la salud y el bienestar. Lejos de ser simples zumos, los mocktails combinan siropes artesanales, hierbas frescas, especias y técnicas de bartending profesional para crear bebidas sofisticadas que cualquiera puede disfrutar, sin importar su elección de consumo.
+            </p>
+          </div>
+        </div>
       )}
+
       <h1 className="font-titles text-4xl text-center mb-6">Mocktails</h1>
-      <div className="max-w-xl mx-auto mb-4 flex gap-2 items-start">
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className="p-2 border rounded font-body flex items-center gap-1 cursor-pointer"
-          style={{ backgroundColor: COLORS.card }}
-        >
-          <IoFilterOutline size={20} /> Filtros
-        </button>
-        <input
-          type="text"
-          placeholder="Buscar..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 p-2 border rounded font-body bg-white"
-        />
+
+      <div className="max-w-xl mx-auto mb-4 flex flex-col sm:flex-row gap-2">
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="p-2 border rounded font-body flex items-center gap-1 cursor-pointer shrink-0"
+            style={{ backgroundColor: COLORS.card }}
+          >
+            <IoFilterOutline size={20} /> Filtros
+          </button>
+          <input
+            type="text"
+            placeholder="Buscar..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 p-2 border rounded font-body bg-white min-w-0"
+          />
+        </div>
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          className="p-2 border rounded font-buttons cursor-pointer"
+          className="p-2 border rounded font-buttons cursor-pointer w-full sm:w-auto"
           style={{ backgroundColor: COLORS.card }}
         >
           <option value="">Ordenar por</option>
@@ -135,10 +129,7 @@ export default function MocktailsPage() {
       </div>
 
       {showFilters && (
-        <div
-          className="max-w-xl mx-auto mb-8 flex flex-col sm:flex-row gap-3 p-3 rounded border font-body"
-          style={{ backgroundColor: COLORS.card }}
-        >
+        <div className="max-w-xl mx-auto mb-8 flex flex-col sm:flex-row gap-3 p-3 rounded border font-body" style={{ backgroundColor: COLORS.card }}>
           <div className="flex-1">
             <label className="block text-sm font-semibold mb-1">Sabor</label>
             <select
@@ -148,9 +139,7 @@ export default function MocktailsPage() {
             >
               <option value="">Todos</option>
               {flavors.map((f) => (
-                <option key={f} value={f}>
-                  {f}
-                </option>
+                <option key={f} value={f}>{f}</option>
               ))}
             </select>
           </div>
@@ -163,9 +152,7 @@ export default function MocktailsPage() {
             >
               <option value="">Todas</option>
               {bases.map((b) => (
-                <option key={b} value={b}>
-                  {b}
-                </option>
+                <option key={b} value={b}>{b}</option>
               ))}
             </select>
           </div>
@@ -181,11 +168,7 @@ export default function MocktailsPage() {
             style={{ backgroundColor: COLORS.card }}
           >
             {drink.image_url && (
-              <img
-                src={drink.image_url}
-                alt={drink.name}
-                className="w-full h-40 object-cover"
-              />
+              <img src={drink.image_url} alt={drink.name} className="w-full h-40 object-cover" />
             )}
             {user && (
               <button
