@@ -71,7 +71,7 @@ export default function CocktailsPage() {
       <div className="max-w-xl mx-auto mb-4 flex gap-2 items-start">
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className="p-2 border rounded font-body flex items-center gap-1"
+          className="p-2 border rounded font-body flex items-center gap-1 cursor-pointer"
           style={{ backgroundColor: COLORS.card }}
         >
           <IoFilterOutline size={20} /> Filtros
@@ -130,7 +130,7 @@ export default function CocktailsPage() {
             {user && (
               <button
                 onClick={(e) => toggleFavorite(e, drink.id)}
-                className="absolute top-2 right-2"
+                className="absolute top-2 right-2 cursor-pointer"
               >
                 <span className="bg-white rounded-full p-1 flex items-center justify-center">
                   {isFavorite(drink.id) ? <IoHeart color="red" size={22} /> : <IoHeartOutline size={22} />}
